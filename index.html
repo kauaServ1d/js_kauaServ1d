@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Trunfo - Supercars Edition</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        cyber: {
+                            dark: '#0a0d14',
+                            card: '#121824',
+                            accent: '#ff2a5f',
+                            neon: '#00f0ff',
+                            gold: '#ffd700',
+                            purple: '#8a2be2'
+                        }
+                    },
+                    fontFamily: {
+                        orbitron: ['Orbitron', 'sans-serif'],
+                        rajdhani: ['Rajdhani', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #06090e;
+            background-image: 
+                radial-gradient(circle at 15% 20%, rgba(255, 42, 95, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 85% 80%, rgba(0, 240, 255, 0.08) 0%, transparent 40%),
+                linear-gradient(to bottom, rgba(10, 13, 20, 0.95), rgba(6, 9, 14, 0.98));
+            font-family: 'Rajdhani', sans-serif;
+            min-height: 100vh;
+            color: #e2e8f0;
+            overflow-x: hidden;
+        }
+
+        /* Perspective and 3D card flip effects */
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-style: preserve-3d;
+        }
+
+        .card-flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 1rem;
+        }
+
+        .card-back {
+            transform: rotateY(180deg);
+        }
+
+        /* Neon Glow Effects */
+        .glow-neon {
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.4), inset 0 0 15px rgba(0, 240, 255, 0.1);
+        }
+
+        .glow-accent {
+            box-shadow: 0 0 15px rgba(255, 42, 95, 0.4), inset 0 0 15px rgba(255, 42, 95, 0.1);
+        }
+
+        .glow-super {
+            box-shadow: 0 0 25px rgba(255, 215, 0, 0.6), inset 0 0 15px rgba(255, 215, 0, 0.2);
+            animation: pulse-gold 2s infinite alternate;
+        }
+
+        @keyframes pulse-gold {
+            0% { box-shadow: 0 0 15px rgba(255, 215, 0, 0.4); }
+            100% { box-shadow: 0 0 30px rgba(255, 215, 0, 0.8), 0 0 10px rgba(255, 255, 255, 0.5); }
+        }
+
+        /* Attribute selection highlight */
+        .attr-row {
+            transition: all 0.2s ease;
+        }
+        .attr-row:hover:not(.disabled) {
+            background: rgba(0, 240, 255, 0.15);
+            border-color: rgba(0, 240, 255, 0.5);
+            transform: translateX(4px);
+        }
+
+        .attr-selected {
+            background: rgba(0, 240, 255, 0.25) !important;
+            border-color: #00f0ff !important;
+            box-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+        }
+
+        .attr-winner {
+            background: rgba(34, 197, 94, 0.3) !important;
+            border-color: #22c55e !important;
+            color: #86efac !important;
+        }
+
+        .attr-loser {
+            background: rgba(239, 68, 68, 0.2) !important;
+            border-color: #ef4444 !important;
+            opacity: 0.7;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0a0d14;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00f0ff;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen justify-between p-2 sm:p-4">
+
+    <!-- Header / Navbar -->
+    <header class="max-w-6xl w-full mx-auto flex flex-col sm:flex-row justify-between items-center bg-cyber-dark/80 backdrop-blur-md p-4 rounded-2xl border border-slate-800 shadow-2xl mb-4">
+        <div class="flex items-center space-x-3 mb-3 sm:mb-0">
+            <div class="bg-gradient-to-br from-cyber-accent to-cyber-purple p-2.5 rounded-xl shadow-lg">
+                <i class="fa-solid font-black fa-gauge-high text-2xl text-white"></i>
+            </div>
+            <div>
+                <h1 class="font-orbitron font-extrabold text-xl sm:text-2xl tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-200 to-cyber-neon">
+                    SUPER TRUNFO
+                </h1>
+                <p class="text-xs font-semibold text-cyber-neon tracking-widest uppercase">Edition Hypercars</p>
+            </div>
+        </div>
+
+        <!-- Scoreboard -->
+        <div class="flex items-center space-x-4 bg-slate-900/90 px-6 py-2 rounded-xl border border-slate-800 text-sm">
+            <div class="text-center">
+                <span class="block text-xs text-slate-400 font-bold uppercase">Você</span>
+                <span id="player-count" class="font-orbitron text-xl font-bold text-cyber-neon">5</span>
+            </div>
+            <div class="h-8 w-px bg-slate-800"></div>
+            <div class="text-center">
+                <span class="block text-xs text-slate-400 font-bold uppercase font-orbitron">VS</span>
+                <span id="round-indicator" class="text-xs text-cyber-accent font-semibold">R1</span>
+            </div>
+            <div class="h-8 w-px bg-slate-800"></div>
+            <div class="text-center">
+                <span class="block text-xs text-slate-400 font-bold uppercase">CPU</span>
+                <span id="cpu-count" class="font-orbitron text-xl font-bold text-cyber-accent">5</span>
+            </div>
+        </div>
+
+        <!-- Audio & Controls -->
+        <div class="mt-3 sm:mt-0 flex items-center space-x-2">
+            <button id="sound-toggle" onclick="toggleSound()" class="p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition border border-slate-700" title="Som">
+                <i id="sound-icon" class="fa-solid fa-volume-high"></i>
+            </button>
+            <button onclick="resetGame()" class="px-3 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition border border-slate-700 text-xs font-semibold flex items-center space-x-1.5">
+                <i class="fa-solid fa-rotate-right"></i>
+                <span>Reiniciar</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Game Area -->
+    <main class="max-w-6xl w-full mx-auto flex-grow flex flex-col justify-center items-center my-2">
+
+        <!-- Turn Banner / Info Message -->
+        <div id="game-status" class="w-full max-w-md text-center py-2 px-4 mb-4 rounded-xl font-orbitron text-sm font-semibold tracking-wide bg-slate-900/80 border border-slate-800 text-cyber-neon shadow-lg transition-all">
+            Sua vez! Escolha um atributo da sua carta.
+        </div>
+
+        <!-- Cards Arena Grid -->
+        <div class="w-full grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-12 items-center justify-items-center max-w-4xl">
+            
+            <!-- PLAYER CARD CONTAINER -->
+            <div class="w-full max-w-sm">
+                <div class="flex justify-between items-center mb-2 px-2">
+                    <span class="text-xs font-bold uppercase tracking-wider text-cyber-neon flex items-center gap-1.5">
+                        <i class="fa-solid fa-user"></i> Sua Carta
+                    </span>
+                    <span id="player-card-id" class="text-xs font-orbitron font-bold text-slate-400">#A1</span>
+                </div>
+
+                <!-- Card Structure -->
+                <div id="player-card" class="w-full h-[470px] rounded-2xl bg-cyber-card border border-slate-800 shadow-2xl overflow-hidden flex flex-col justify-between p-4 relative transition-all duration-300 glow-neon">
+                    <!-- Super Trunfo Badge -->
+                    <div id="player-super-badge" class="hidden absolute top-3 right-3 z-10 bg-gradient-to-r from-yellow-500 to-amber-300 text-slate-950 font-orbitron font-black text-xs px-2.5 py-1 rounded-full shadow-lg border border-yellow-200 uppercase tracking-wider flex items-center gap-1">
+                        <i class="fa-solid fa-crown text-slate-900"></i> Super Trunfo
+                    </div>
+
+                    <!-- Card Header / Car Name -->
+                    <div class="pr-20">
+                        <span id="player-car-brand" class="text-xs uppercase tracking-widest font-bold text-cyber-neon block">Bugatti</span>
+                        <h2 id="player-car-name" class="text-xl font-orbitron font-black text-white leading-tight">Chiron Super Sport</h2>
+                    </div>
+
+                    <!-- Car Image Area -->
+                    <div class="relative w-full h-44 my-2 rounded-xl overflow-hidden bg-slate-950/80 border border-slate-800/80 group">
+                        <img id="player-car-img" src="" alt="Carro" class="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105" onerror="this.src='https://placehold.co/600x400/121824/ffffff?text=Supercar'">
+                        <div class="absolute inset-0 bg-gradient-to-t from-cyber-card via-transparent to-transparent"></div>
+                    </div>
+
+                    <!-- Attributes Container -->
+                    <div id="player-attributes" class="space-y-1.5 flex-grow flex flex-col justify-end">
+                        <!-- Attribute Row Example (Populated by JS) -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- CPU CARD CONTAINER -->
+            <div class="w-full max-w-sm">
+                <div class="flex justify-between items-center mb-2 px-2">
+                    <span class="text-xs font-bold uppercase tracking-wider text-cyber-accent flex items-center gap-1.5">
+                        <i class="fa-solid fa-robot"></i> Carta Oponente
+                    </span>
+                    <span id="cpu-card-id" class="text-xs font-orbitron font-bold text-slate-400">#B2</span>
+                </div>
+
+                <!-- Card Structure with Flip Effect -->
+                <div id="cpu-card-wrapper" class="w-full h-[470px] perspective-1000">
+                    <div id="cpu-card-inner" class="card-inner">
+                        
+                        <!-- FRONT OF CPU CARD (Card Back visual when hidden) -->
+                        <div class="card-front bg-cyber-card border border-slate-800 shadow-2xl p-4 flex flex-col justify-center items-center text-center glow-accent">
+                            <div class="w-24 h-24 rounded-full bg-slate-900 border-2 border-cyber-accent/40 flex items-center justify-center mb-4 shadow-inner">
+                                <i class="fa-solid fa-shield-halved text-4xl text-cyber-accent animate-pulse"></i>
+                            </div>
+                            <h3 class="font-orbitron font-bold text-lg text-slate-200 tracking-wider">SUPER TRUNFO</h3>
+                            <p class="text-xs text-slate-500 mt-1 uppercase tracking-widest">Aguardando jogada...</p>
+                        </div>
+
+                        <!-- BACK OF CPU CARD (Revealed Data) -->
+                        <div id="cpu-card-back" class="card-back bg-cyber-card border border-slate-800 shadow-2xl p-4 flex flex-col justify-between glow-accent">
+                            <!-- Super Trunfo Badge -->
+                            <div id="cpu-super-badge" class="hidden absolute top-3 right-3 z-10 bg-gradient-to-r from-yellow-500 to-amber-300 text-slate-950 font-orbitron font-black text-xs px-2.5 py-1 rounded-full shadow-lg border border-yellow-200 uppercase tracking-wider flex items-center gap-1">
+                                <i class="fa-solid fa-crown text-slate-900"></i> Super Trunfo
+                            </div>
+
+                            <!-- Card Header -->
+                            <div class="pr-20">
+                                <span id="cpu-car-brand" class="text-xs uppercase tracking-widest font-bold text-cyber-accent block">Ferrari</span>
+                                <h2 id="cpu-car-name" class="text-xl font-orbitron font-black text-white leading-tight">SF90 Stradale</h2>
+                            </div>
+
+                            <!-- Car Image Area -->
+                            <div class="relative w-full h-44 my-2 rounded-xl overflow-hidden bg-slate-950/80 border border-slate-800/80">
+                                <img id="cpu-car-img" src="" alt="Carro CPU" class="w-full h-full object-cover object-center" onerror="this.src='https://placehold.co/600x400/121824/ffffff?text=Supercar'">
+                                <div class="absolute inset-0 bg-gradient-to-t from-cyber-card via-transparent to-transparent"></div>
+                            </div>
+
+                            <!-- Attributes Container -->
+                            <div id="cpu-attributes" class="space-y-1.5 flex-grow flex flex-col justify-end">
+                                <!-- Populated by JS -->
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Next Round Button / Action Bar -->
+        <div class="mt-6 flex justify-center w-full">
+            <button id="next-btn" onclick="nextRound()" class="hidden px-8 py-3.5 bg-gradient-to-r from-cyber-neon to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-orbitron font-black text-base rounded-xl shadow-lg shadow-cyber-neon/20 transition-all transform hover:-translate-y-0.5 active:translate-y-0 flex items-center gap-2">
+                <span>PRÓXIMA RODADA</span>
+                <i class="fa-solid fa-forward"></i>
+            </button>
+        </div>
+
+    </main>
+
+    <!-- Modal Final de Vitória/Derrota -->
+    <div id="game-over-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-cyber-card border-2 border-slate-700 p-6 sm:p-8 rounded-2xl max-w-md w-full text-center shadow-2xl relative overflow-hidden">
+            <div id="modal-glow" class="absolute -top-24 -left-24 w-48 h-48 bg-cyber-neon/20 rounded-full blur-3xl pointer-events-none"></div>
+            
+            <div id="modal-icon-container" class="w-20 h-20 mx-auto mb-4 rounded-2xl bg-slate-900 border border-slate-700 flex items-center justify-center text-4xl">
+                <i id="modal-icon" class="fa-solid fa-trophy text-yellow-400"></i>
+            </div>
+
+            <h2 id="modal-title" class="font-orbitron font-black text-2xl sm:text-3xl text-white mb-2">VITÓRIA!</h2>
+            <p id="modal-desc" class="text-slate-400 text-sm mb-6">Você conquistou todas as cartas do adversário e provou ser o verdadeiro rei do asfalto.</p>
+
+            <div class="bg-slate-950/60 p-4 rounded-xl border border-slate-800/80 mb-6 flex justify-around">
+                <div>
+                    <span class="text-xs text-slate-500 block uppercase font-bold">Rodadas</span>
+                    <span id="modal-rounds" class="font-orbitron text-lg font-bold text-slate-200">12</span>
+                </div>
+                <div class="w-px bg-slate-800"></div>
+                <div>
+                    <span class="text-xs text-slate-500 block uppercase font-bold">Resultado</span>
+                    <span id="modal-score-text" class="font-orbitron text-lg font-bold text-cyber-neon">10 vs 0</span>
+                </div>
+            </div>
+
+            <button onclick="resetGame()" class="w-full py-3.5 bg-gradient-to-r from-cyber-accent to-cyber-purple hover:from-pink-600 hover:to-purple-700 text-white font-orbitron font-bold text-sm tracking-wider uppercase rounded-xl shadow-lg transition">
+                JOGAR NOVAMENTE
+            </button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="max-w-6xl w-full mx-auto text-center text-xs text-slate-600 py-3 border-t border-slate-900/60 mt-4">
+        Super Trunfo - Supercars Edition &copy; 2026. Desenvolvido para entusiastas automotivos.
+    </footer>
+
+    <!-- Game Logic JavaScript -->
+    <script>
+        // Data Set of Supercars (10 Cars)
+        const CARS_DATABASE = [
+            {
+                id: "A1",
+                brand: "Bugatti",
+                name: "Chiron Super Sport",
+                img: "https://images.unsplash.com/photo-1544829099-b9a0c07fad1a?auto=format&fit=crop&w=800&q=80",
+                isSuperTrunfo: true,
+                stats: {
+                    speed: 440,       // km/h
+                    accel: 2.4,       // s (0-100)
+                    power: 1600,      // CV
+                    displacement: 7993, // cc
+                    weight: 1995       // kg
+                }
+            },
+            {
+                id: "A2",
+                brand: "Porsche",
+                name: "911 GT3 RS",
+                img: "https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?auto=format&fit=crop&w=800&q=80",
+                isSuperTrunfo: false,
+                stats: {
+                    speed: 296,
+                    accel: 3.2,
+                    power: 525,
+                    displacement: 3996,
+                    weight: 1450
+                }
+            },
+            {
+                id: "A3",
+                brand: "Ferrari",
+                name: "SF90 Stradale",
+                img: "https://images.unsplash.com/photo-1583121274602-3e2820c69888?auto=format&fit=crop&w=800&q=80",
+                isSuperTrunfo: false,
+                stats: {
+                    speed: 340,
+                    accel: 2.5,
+                    power: 1000,
+                    displacement: 3990,
+                    weight: 1570
+                }
+            },
+            {
+                id: "B1",
+                brand: "Lamborghini",
+                name: "Aventador SVJ",
+                img: "https://images.unsplash.com/photo-1511919884226-fd3cad34687c?auto=format&fit=crop&w=800&q=80",
+                isSuperTrunfo: false,
+                stats: {
+                    speed: 351,
+                    accel: 2.8,
+                    power: 770,
+                    displacement: 6498,
+                    weight: 1525
+                }
+            },
+            {
+                id: "B2",
+                brand: "Tesla",
+                name: "Model S Plaid",
+                img: "https://images.unsplash.com/photo-1617788138017-80ad40651399?auto=format&fit=crop&w=800&q=80",
+                isSuperTrunfo: false,
+                stats: {
+                    speed: 322,
+                    accel: 2.1,
+                    power: 1020,
+                    displacement: 0, // Electric
+                    weight: 2162
+                }
+            },
+            {
+                id: "B3",
+                brand: "Dodge",
+                name: "Challenger Demon 170",
+                img: "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?auto=format&fit=crop&w=800&q=80",
+                isSuperTrunfo: false,
+                stats: {
+                    speed: 346,
+                    accel: 1.66,
+                    power: 1039,
+                    displacement: 6166,
+                    weight: 1941
+                }
+            },
+            {
+                id: "C1",
+                brand: "McLaren",
+                name: "750S Spider",
+                img: "https://images.unsplash.com/photo-1621135802920-133df287f89c?auto=format&fit=crop&w=800&q=80",
+                isSuperTrunfo: false,
+                stats: {
+                    speed: 332,
+                    accel: 2.8,
+                    power: 750,
+                    displacement: 3994,
+                    weight: 1389
+                }
+            },
+            {
+                id: "C2",
+                brand: "Koenigsegg",
+                name: "Jesko Absolut",
+                img: "https://images.unsplash.com/photo-1541348263662-e082662d82da?auto=format&fit=crop&w=800&q=80",
+                isSuperTrunfo: false,
+                stats: {
+                    speed: 500,
+                    accel: 2.5,
+                    power: 1625,
+                    displacement: 5065,
+                    weight: 1390
+                }
+            },
+            {
+                id: "C3",
+                brand: "Aston Martin",
+                name: "Valkyrie",
+                img: "https://images.unsplash.com/photo-1600712242805-5f78671b24da?auto=format&fit=crop&w=800&q=80",
+                isSuperTrunfo: false,
+                stats: {
+                    speed: 355,
+                    accel: 2.6,
+                    power: 1155,
+                    displacement: 6500,
+                    weight: 1030
+                }
+            },
+            {
+                id: "D1",
+                brand: "Nissan",
+                name: "GT-R Nismo",
+                img: "https://images.unsplash.com/photo-1619330190362-e00f13e77879?auto=format&fit=crop&w=800&q=80",
+                isSuperTrunfo: false,
+                stats: {
+                    speed: 315,
+                    accel: 2.8,
+                    power: 600,
+                    displacement: 3799,
+                    weight: 1725
+                }
+            }
+        ];
+
+        // Attribute Metadata definitions
+        const ATTRIBUTES_CONFIG = {
+            speed: { label: "Velocidade Máxima", unit: "km/h", icon: "fa-gauge-high", lowerIsBetter: false },
+            accel: { label: "Aceleração (0-100)", unit: "seg", icon: "fa-stopwatch", lowerIsBetter: true },
+            power: { label: "Potência", unit: "CV", icon: "fa-bolt", lowerIsBetter: false },
+            displacement: { label: "Cilindrada", unit: "cc", icon: "fa-fire", lowerIsBetter: false },
+            weight: { label: "Peso", unit: "kg", icon: "fa-weight-hanging", lowerIsBetter: true }
+        };
+
+        // Game State Variables
+        let playerDeck = [];
+        let cpuDeck = [];
+        let playerCurrentCard = null;
+        let cpuCurrentCard = null;
+        let isPlayerTurn = true;
+        let roundNumber = 1;
+        let soundEnabled = true;
+        let roundInProgress = false;
+
+        // Sound Effects (Web Audio API Synthesizer)
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                const now = audioCtx.currentTime;
+
+                if (type === 'click') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(600, now);
+                    gain.gain.setValueAtTime(0.05, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+                    osc.start(now);
+                    osc.stop(now + 0.05);
+                } else if (type === 'win') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(440, now);
+                    osc.frequency.setValueAtTime(880, now + 0.1);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                    osc.start(now);
+                    osc.stop(now + 0.3);
+                } else if (type === 'lose') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(300, now);
+                    osc.frequency.setValueAtTime(150, now + 0.15);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+                    osc.start(now);
+                    osc.stop(now + 0.35);
+                } else if (type === 'flip') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(200, now);
+                    osc.frequency.exponentialRampToValueAtTime(400, now + 0.1);
+                    gain.gain.setValueAtTime(0.08, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+                    osc.start(now);
+                    osc.stop(now + 0.1);
+                }
+            } catch (e) {
+                // Audio context fallbacks or user interaction limitations
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const icon = document.getElementById('sound-icon');
+            if (soundEnabled) {
+                icon.className = 'fa-solid fa-volume-high';
+            } else {
+                icon.className = 'fa-solid fa-volume-xmark';
+            }
+        }
+
+        // Initialize / Restart Game
+        function resetGame() {
+            playSound('click');
+            // Hide Modal
+            document.getElementById('game-over-modal').classList.add('hidden');
+
+            // Shuffle DB
+            const shuffled = [...CARS_DATABASE].sort(() => Math.random() - 0.5);
+            
+            // Split Deck equally
+            const half = Math.ceil(shuffled.length / 2);
+            playerDeck = shuffled.slice(0, half);
+            cpuDeck = shuffled.slice(half);
+
+            roundNumber = 1;
+            isPlayerTurn = true;
+            roundInProgress = false;
+
+            document.getElementById('next-btn').classList.add('hidden');
+            
+            updateScoreboard();
+            loadRoundCards();
+        }
+
+        // Update Score UI
+        function updateScoreboard() {
+            document.getElementById('player-count').textContent = playerDeck.length;
+            document.getElementById('cpu-count').textContent = cpuDeck.length;
+            document.getElementById('round-indicator').textContent = `R${roundNumber}`;
+        }
+
+        // Setup Current Round Cards
+        function loadRoundCards() {
+            if (playerDeck.length === 0 || cpuDeck.length === 0) {
+                endGame();
+                return;
+            }
+
+            roundInProgress = false;
+            playerCurrentCard = playerDeck[0];
+            cpuCurrentCard = cpuDeck[0];
+
+            // Reset CPU card flip visual
+            const wrapper = document.getElementById('cpu-card-wrapper');
+            wrapper.classList.remove('card-flipped');
+
+            // Render Player Card
+            renderCard('player', playerCurrentCard);
+            // Render CPU Card (hidden on back face)
+            renderCard('cpu', cpuCurrentCard);
+
+            // Update Status Banner
+            const statusBox = document.getElementById('game-status');
+            if (isPlayerTurn) {
+                statusBox.textContent = "Sua vez! Escolha o melhor atributo da sua carta.";
+                statusBox.className = "w-full max-w-md text-center py-2 px-4 mb-4 rounded-xl font-orbitron text-sm font-semibold tracking-wide bg-slate-900/80 border border-cyber-neon/40 text-cyber-neon shadow-lg shadow-cyber-neon/10 transition-all";
+            } else {
+                statusBox.textContent = "Vez da CPU! A CPU está escolhendo o atributo...";
+                statusBox.className = "w-full max-w-md text-center py-2 px-4 mb-4 rounded-xl font-orbitron text-sm font-semibold tracking-wide bg-slate-900/80 border border-cyber-accent/40 text-cyber-accent shadow-lg shadow-cyber-accent/10 transition-all";
+                
+                // Trigger CPU turn after short delay
+                setTimeout(cpuPlayTurn, 1500);
+            }
+        }
+
+        // Render Card Helper
+        function renderCard(owner, car) {
+            document.getElementById(`${owner}-card-id`).textContent = `#${car.id}`;
+            document.getElementById(`${owner}-car-brand`).textContent = car.brand;
+            document.getElementById(`${owner}-car-name`).textContent = car.name;
+            document.getElementById(`${owner}-car-img`).src = car.img;
+
+            // Handle Super Trunfo Badge
+            const badge = document.getElementById(`${owner}-super-badge`);
+            const cardEl = owner === 'player' ? document.getElementById('player-card') : document.getElementById('cpu-card-back');
+            
+            if (car.isSuperTrunfo) {
+                badge.classList.remove('hidden');
+                cardEl.classList.add('glow-super');
+            } else {
+                badge.classList.add('hidden');
+                cardEl.classList.remove('glow-super');
+            }
+
+            // Render Attributes
+            const attrContainer = document.getElementById(`${owner}-attributes`);
+            attrContainer.innerHTML = '';
+
+            Object.keys(ATTRIBUTES_CONFIG).forEach(key => {
+                const config = ATTRIBUTES_CONFIG[key];
+                const value = car.stats[key];
+                
+                // Formatter for display
+                let displayVal = value;
+                if (key === 'displacement' && value === 0) displayVal = 'Elétrico';
+                else if (key === 'accel') displayVal = `${value.toFixed(1)} s`;
+                else displayVal = `${value.toLocaleString('pt-BR')} ${config.unit}`;
+
+                const row = document.createElement('div');
+                row.id = `${owner}-attr-${key}`;
+                row.className = `attr-row flex justify-between items-center p-2 rounded-lg border border-slate-800/80 bg-slate-900/60 text-xs font-semibold cursor-pointer select-none ${owner === 'cpu' || !isPlayerTurn ? 'disabled pointer-events-none' : ''}`;
+                
+                if (owner === 'player') {
+                    row.onclick = () => selectAttribute(key);
+                }
+
+                row.innerHTML = `
+                    <div class="flex items-center space-x-2">
+                        <i class="fa-solid ${config.icon} text-slate-400 w-4 text-center"></i>
+                        <span class="text-slate-300 font-rajdhani text-sm">${config.label}</span>
+                    </div>
+                    <span class="font-orbitron font-bold text-white tracking-wider">${displayVal}</span>
+                `;
+
+                attrContainer.appendChild(row);
+            });
+        }
+
+        // Player Selects Attribute
+        function selectAttribute(attrKey) {
+            if (roundInProgress || !isPlayerTurn) return;
+            roundInProgress = true;
+            evaluateRound(attrKey);
+        }
+
+        // CPU AI Chooses Best Attribute
+        function cpuPlayTurn() {
+            if (roundInProgress) return;
+            roundInProgress = true;
+
+            // AI Logic: Finds the attribute with highest ratio relative to typical max in stats
+            const stats = cpuCurrentCard.stats;
+            
+            // If CPU has Super Trunfo, preferred pick doesn't matter as much, but let's pick its top stat
+            let bestAttr = 'speed';
+            let bestScore = -1;
+
+            // Approximate max values for normalizations
+            const maxes = { speed: 500, accel: 1.5, power: 1600, displacement: 8000, weight: 1000 };
+
+            Object.keys(ATTRIBUTES_CONFIG).forEach(key => {
+                const val = stats[key];
+                let score = 0;
+                if (key === 'accel') {
+                    // Lower is better: invert ratio
+                    score = (5.0 - val) / 5.0;
+                } else if (key === 'weight') {
+                    score = (2500 - val) / 2500;
+                } else {
+                    score = val / maxes[key];
+                }
+
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestAttr = key;
+                }
+            });
+
+            evaluateRound(bestAttr);
+        }
+
+        // Evaluate Round Comparison
+        function evaluateRound(attrKey) {
+            playSound('flip');
+
+            // Reveal CPU Card
+            const wrapper = document.getElementById('cpu-card-wrapper');
+            wrapper.classList.add('card-flipped');
+
+            // Highlight selected attribute on player card
+            const playerAttrEl = document.getElementById(`player-attr-${attrKey}`);
+            if (playerAttrEl) playerAttrEl.classList.add('attr-selected');
+
+            // Wait brief moment for flip animation before evaluating
+            setTimeout(() => {
+                const cpuAttrEl = document.getElementById(`cpu-attr-${attrKey}`);
+                if (cpuAttrEl) cpuAttrEl.classList.add('attr-selected');
+
+                const pVal = playerCurrentCard.stats[attrKey];
+                const cVal = cpuCurrentCard.stats[attrKey];
+                const lowerIsBetter = ATTRIBUTES_CONFIG[attrKey].lowerIsBetter;
+
+                let winner = null; // 'player', 'cpu', 'draw'
+
+                // Super Trunfo Check Rules:
+                // Super Trunfo beats all regular cards EXCEPT card A1 (or if both ST, default to stats)
+                if (playerCurrentCard.isSuperTrunfo && !cpuCurrentCard.isSuperTrunfo) {
+                    winner = (cpuCurrentCard.id === 'A1') ? 'cpu' : 'player';
+                } else if (cpuCurrentCard.isSuperTrunfo && !playerCurrentCard.isSuperTrunfo) {
+                    winner = (playerCurrentCard.id === 'A1') ? 'player' : 'cpu';
+                } else {
+                    // Standard numerical comparison
+                    if (pVal === cVal) {
+                        winner = 'draw';
+                    } else if (lowerIsBetter) {
+                        winner = pVal < cVal ? 'player' : 'cpu';
+                    } else {
+                        winner = pVal > cVal ? 'player' : 'cpu';
+                    }
+                }
+
+                // Visual highlights for results
+                const statusBox = document.getElementById('game-status');
+
+                if (winner === 'player') {
+                    playSound('win');
+                    statusBox.textContent = `Você venceu a rodada! (${ATTRIBUTES_CONFIG[attrKey].label})`;
+                    statusBox.className = "w-full max-w-md text-center py-2 px-4 mb-4 rounded-xl font-orbitron text-sm font-bold bg-green-950/80 border border-green-500 text-green-400 shadow-lg shadow-green-500/20";
+                    
+                    if (playerAttrEl) playerAttrEl.classList.add('attr-winner');
+                    if (cpuAttrEl) cpuAttrEl.classList.add('attr-loser');
+
+                    // Winner takes both cards (put at end of deck)
+                    playerDeck.push(playerDeck.shift());
+                    playerDeck.push(cpuDeck.shift());
+                    isPlayerTurn = true; // Player keeps control
+
+                } else if (winner === 'cpu') {
+                    playSound('lose');
+                    statusBox.textContent = `CPU venceu a rodada! (${ATTRIBUTES_CONFIG[attrKey].label})`;
+                    statusBox.className = "w-full max-w-md text-center py-2 px-4 mb-4 rounded-xl font-orbitron text-sm font-bold bg-red-950/80 border border-red-500 text-red-400 shadow-lg shadow-red-500/20";
+                    
+                    if (playerAttrEl) playerAttrEl.classList.add('attr-loser');
+                    if (cpuAttrEl) cpuAttrEl.classList.add('attr-winner');
+
+                    // CPU takes both cards
+                    cpuDeck.push(cpuDeck.shift());
+                    cpuDeck.push(playerDeck.shift());
+                    isPlayerTurn = false; // CPU takes control
+
+                } else {
+                    // Draw
+                    playSound('click');
+                    statusBox.textContent = `Empate! As cartas retornam ao fim do baralho.`;
+                    statusBox.className = "w-full max-w-md text-center py-2 px-4 mb-4 rounded-xl font-orbitron text-sm font-bold bg-yellow-950/80 border border-yellow-500 text-yellow-400 shadow-lg shadow-yellow-500/20";
+
+                    // Put current cards to end of respective decks
+                    playerDeck.push(playerDeck.shift());
+                    cpuDeck.push(cpuDeck.shift());
+                }
+
+                updateScoreboard();
+
+                // Show Next Button
+                if (playerDeck.length > 0 && cpuDeck.length > 0) {
+                    document.getElementById('next-btn').classList.remove('hidden');
+                } else {
+                    setTimeout(endGame, 1500);
+                }
+
+            }, 600);
+        }
+
+        // Proceed to Next Round
+        function nextRound() {
+            playSound('click');
+            document.getElementById('next-btn').classList.add('hidden');
+            roundNumber++;
+            loadRoundCards();
+        }
+
+        // Game Over Trigger
+        function endGame() {
+            const modal = document.getElementById('game-over-modal');
+            const title = document.getElementById('modal-title');
+            const desc = document.getElementById('modal-desc');
+            const icon = document.getElementById('modal-icon');
+            const iconContainer = document.getElementById('modal-icon-container');
+            const scoreText = document.getElementById('modal-score-text');
+            const roundsText = document.getElementById('modal-rounds');
+
+            roundsText.textContent = roundNumber;
+            scoreText.textContent = `${playerDeck.length} vs ${cpuDeck.length}`;
+
+            if (playerDeck.length > 0) {
+                playSound('win');
+                title.textContent = "VITÓRIA SUPREMA!";
+                title.className = "font-orbitron font-black text-2xl sm:text-3xl text-cyber-neon mb-2";
+                desc.textContent = "Parabéns! Você conquistou todas as cartas do baralho e dominou as pistas.";
+                icon.className = "fa-solid fa-trophy text-yellow-400";
+                iconContainer.className = "w-20 h-20 mx-auto mb-4 rounded-2xl bg-yellow-500/10 border border-yellow-500/30 flex items-center justify-center text-4xl";
+            } else {
+                playSound('lose');
+                title.textContent = "DERROTA!";
+                title.className = "font-orbitron font-black text-2xl sm:text-3xl text-cyber-accent mb-2";
+                desc.textContent = "A CPU conseguiu todas as cartas. Treine mais suas estratégias e tente novamente!";
+                icon.className = "fa-solid fa-skull text-cyber-accent";
+                iconContainer.className = "w-20 h-20 mx-auto mb-4 rounded-2xl bg-cyber-accent/10 border border-cyber-accent/30 flex items-center justify-center text-4xl";
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        // Initialize Game on Window Load
+        window.onload = function() {
+            resetGame();
+        };
+    </script>
+</body>
+</html>
